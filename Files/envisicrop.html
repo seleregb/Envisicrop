@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    
+    <head>
+        <title>EnvisiCrop</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="description" content="FEnvisiCrop - Crop Visualisation Tool" />
+        <meta name="keywords" content="visualisation, crops, CFFRC, UNMC, nottingham, bambara" />
+        <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" />
+        <link rel="stylesheet" media="screen" href="jquery-handsontable-0.8.13/jquery.handsontable.css">
+        <link rel="stylesheet" media="screen" href="jquery-handsontable-0.8.13/lib/jQuery-contextMenu/jquery.contextMenu.css">
+        <link rel="stylesheet" href="css/form-field-tooltip.css" media="screen" type="text/css">
+    </head>
+    
+    <body>
+        <div id="content">
+             <h1>EnvisiCrop Prototype</h1>
+
+            <div id="wrapper">
+                <div id="navigation" style="display:none;">
+                    <ul id="links">
+                        <li class="selected">
+                            <a href="#">Details</a>
+                        </li>
+                        <li>
+                            <a href="#">Layout</a>
+                        </li>
+                        <li>
+                            <a href="#">Global Vars</a>
+                        </li>
+                        <li id="unitlink">
+                            <a href="#">Unit Vars</a>
+                        </li>
+                        <li id="simslink">
+                            <a href="#">Simulation</a>
+                        </li>
+                        <li id="vislink">
+                            <a href="#">Visualisations</a>
+                        </li>
+                        <li id="reportlink">
+                            <a href="#">Report</a>
+                        </li>
+                        <li>
+                            <a href="#">Export</a>
+                        </li>
+                    </ul>
+                </div>
+                <div id="steps">
+                    <form id="formElem" name="formElem" action="process.php" method="post">
+                        <fieldset class="step">
+                            <legend>Details - Enter general details about your crop project</legend>
+                            <p>
+                                <label for="projectname">Project name</label>
+                                <input id="name" name="projectname" type="text" tooltipText="The preferred name of your project" AUTOCOMPLETE=OFF/>
+                            </p>
+                            <p>
+                                <label for="projectcode">Project Code</label>
+                                <input id="code" name="projectcode" type="text" tooltipText="This would be the code assigned to your project." AUTOCOMPLETE=OFF />
+                            </p>
+                            <p>
+                                <label for="cropname">Crop Name</label>
+                                <select name="cropname">
+                                    <option value="sandy">Rubber</option>
+                                    <option value="silty">Palm Oil</option>
+                                    <option value="peaty">Cocoa</option>
+                                    <option value="clay">Bambara</option>
+                                </select>
+                            </p>
+                            <p>
+                                <label for="croptype">Crop Type</label>
+                                <select name="croptype">
+                                    <option value="root">Root Crops</option>
+                                    <option value="break">Break Crops</option>
+                                    <option value="white">White Straw Crops</option>
+                                    <option value="restorative">Restorative Crops</option>
+                                </select>
+                            </p>
+                            <p>
+                                <label for="timeperiod">Time Period(years)</label>
+                                <input id="tperiod" name="timeperiod" type="number" tooltipText="The length of the simulation in years" AUTOCOMPLETE=OFF />
+                            </p>
+                            <p>
+                                <label for="password">Soil Types</label>
+                                <select name="soiltypes">
+                                    <option value="sandy">Sandy</option>
+                                    <option value="silty">Silty</option>
+                                    <option value="peaty">Peaty</option>
+                                    <option value="clay">Clay</option>
+                                    <option value="saline">Saline Soil</option>
+                                </select>
+                            </p>
+                            <p>
+                                <label for="unit">Unit System</label>
+                                <select name="units">
+                                    <option value="imperial">Imperial</option>
+                                    <option value="metric">Metric</option>
+                                </select>
+                            </p>
+                            <p>
+                                <input type="checkbox" name="report" value="details">Add to report</p>
+                            <p>
+                                <label>Load Saved Project</label>
+                                <input type="file" id="files" name="files[]" />
+                            </p>
+                        </fieldset>
+                        <fieldset class="step">
+                            <legend>Layout - Draw/Upload the layout of your farm field</legend>
+                            <div id="map"></div>
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <br />
+                            <p>
+                                <a href="#" id="locate">Locate Me</a>
+                            </p>
+                            <p>
+                                <label>Total Area:</label>
+                                <input id="totalarea" type="text" disabled="disabled" />&sup2;</p>
+                            <p>
+                                <label>toggle Image DragControl</label>
+                                <input type="checkbox" checked onchange="if(this.checked)ctrlDragFeature.activate();else ctrlDragFeature.deactivate()">
+                            </p>
+                            <p>
+                                <label>Graphic</label>
+                                <input id="iUrl" type="text" class="txtCount" onchange="applyValue();" style="width:120px;">
+                            </p>
+                            <p>
+                                <label>X Coord</label>
+                                <img class="lr" src="images/west-mini.png" onclick="addVal(-1,'iXPos');">
+                                <input id="iXPos" type="text" class="txtCount" onchange="applyValue();">
+                                <img class="lr" src="images/east-mini.png" onclick="addVal(1,'iXPos');">
+                            </p>
+                            <p>
+                                <label>Y Coord</label>
+                                <img class="lr" src="images/west-mini.png" onclick="addVal(-1,'iYPos');">
+                                <input id="iYPos" type="text" class="txtCount" onchange="applyValue();">
+                                <img class="lr" src="images/east-mini.png" onclick="addVal(1,'iYPos');">
+                            </p>
+                            <p>
+                                <label>Width</label>
+                                <img class="lr" src="images/west-mini.png" onclick="addVal(-1,'iWidth');">
+                                <input id="iWidth" type="text" class="txtCount" onchange="applyValue();">
+                                <img class="lr" src="images/east-mini.png" onclick="addVal(1,'iWidth');">
+                            </p>
+                            <p>
+                                <label>Height</label>
+                                <img class="lr" src="images/west-mini.png" onclick="addVal(-1,'iHeight');">
+                                <input id="iHeight" type="text" class="txtCount" onchange="applyValue();">
+                                <img class="lr" src="images/east-mini.png" onclick="addVal(1,'iHeight');">
+                            </p>
+                            <p>
+                                <label>Rotation</label>
+                                <img class="lr" src="images/west-mini.png" onclick="addVal(-1,'iRota');">
+                                <input id="iRota" type="text" class="txtCount" onchange="applyValue();">
+                                <img class="lr" src="images/east-mini.png" onclick="addVal(1,'iRota');">
+                            </p>
+                            <p>
+                                <label>Opacity</label>
+                                <img class="lr" src="images/west-mini.png" onclick="addVal(-1,'iOpa');">
+                                <input id="iOpa" type="text" class="txtCount" onchange="applyValue();">
+                                <img class="lr" src="images/east-mini.png" onclick="addVal(1,'iOpa');">
+                            </p>
+                            <p>
+                                <label>Image Resolution</label>
+                                <img class="lr" src="images/west-mini.png" onclick="addVal(-1,'iRes');">
+                                <input id="iRes" type="text" class="txtCount" onchange="applyValue();">
+                                <img class="lr" src="images/east-mini.png" onclick="addVal(1,'iRes');">
+                            </p>
+                        </fieldset>
+                        <fieldset class="step" id="globalfield">
+                            <legend>Global Variables - General variables for all field units</legend>
+                            <p id="general">
+                                <label for="grid">Grid</label>
+                                <div style="margin-left: 100px" id="exampleGrid" class="dataTable"></div>
+                            </p>
+                            <p>
+                                <label for="dateformat">Date Format</label>
+                                <input id="dateformat" name="dateformat" type="text" value="%Y-%m-%d" tooltipText="Please go to this link for more information goo.gl/aCdv6" />
+                            </p>
+                            <p>
+                                <label>Add custom variable</label>
+                                <input type="text" name="customvar" id="customvar" />
+                                <button id="customvarbtn">Add variable</button>
+                            </p>
+                            <p id="weathr">
+                                <label class="nohide" for="addweathr">Choose variable to add:</label>
+                                <select class="nohide" id="addweathr" name="addweathr"></select>
+                                <button class="nohide" onclick="addVarToGroup('addweathr');return false">Add variable</button>
+                                <label for="airtemp">Annual air temperature</label>
+                                <input id="air" name="airtemp" type="number" AUTOCOMPLETE=OFF />
+                                <label for="concentration">C02 concentration</label>
+                                <input id="conc" name="concentration" type="number" AUTOCOMPLETE=OFF />
+                                <label for="daylength">Day length</label>
+                                <input id="dlength" name="daylength" type="number" AUTOCOMPLETE=OFF />
+                                <label for="maxtemp">Max. daily air temp.</label>
+                                <input id="max" name="maxtemp" type="number" AUTOCOMPLETE=OFF />
+                                <label for="mintemp">Min. daily air temp.</label>
+                                <input id="min" name="mintemp" type="number" AUTOCOMPLETE=OFF />
+                                <label for="precipitation">Daily tot. precipitation</label>
+                                <input id="pre" name="precipitation" type="number" AUTOCOMPLETE=OFF />
+                                <label for="radiation">Daily tot. solar radiation</label>
+                                <input id="rad" name="radiation" type="number" AUTOCOMPLETE=OFF />
+                                <label for="windspeed">Wind speed</label>
+                                <input id="wind" name="windspeed" type="number" AUTOCOMPLETE=OFF />
+                                <label for="amplitude">Amplitude of annual air temp.</label>
+                                <input id="amp" name="amplitude" type="number" AUTOCOMPLETE=OFF />
+                            </p>
+                            <p id="soil">
+                                <label class="nohide" for="addsoil">Choose variable to add:</label>
+                                <select class="nohide" id="addsoil" name="addsoil"></select>
+                                <button class="nohide" onclick="addVarToGroup('addsoil');return false">Add variable</button>
+                                <label for="plantingarea">Planting area</label>
+                                <input id="area" name="plantingarea" type="number" AUTOCOMPLETE=OFF />
+                                <label for="soilph">Soil PH</label>
+                                <input id="ph" name="soilph" type="number" AUTOCOMPLETE=OFF />
+                                <label for="watercontent">Soil water content</label>
+                                <input id="water" name="namecard" type="number" AUTOCOMPLETE=OFF />
+                            </p>
+                            <p id="pgro">
+                                <label class="nohide" for="addpgro">Choose variable to add:</label>
+                                <select class="nohide" id="addpgro" name="addpgro"></select>
+                                <button class="nohide" onclick="addVarToGroup('addpgro');return false">Add variable</button>
+                                <label for="cropcost">Crop cost</label>
+                                <input id="cost" name="cropcost" type="number" AUTOCOMPLETE=OFF />
+                                <label for="cropmass">Crop mass</label>
+                                <input id="secure" name="secure" type="number" AUTOCOMPLETE=OFF />
+                                <label for="yield">Yield</label>
+                                <input id="y" name="yield" type="number" AUTOCOMPLETE=OFF />
+                                <label for="maturitydate">Harvest maturity date(YYYY-MM-DD)</label>
+                                <input id="mdate" name="maturitydate" type="date" AUTOCOMPLETE=OFF />
+                            </p>
+                            <p id="opmgmt">
+                                <label class="nohide" for="addopmgmt">Choose variable to add:</label>
+                                <select class="nohide" id="addopmgmt" name="addopmgmt"></select>
+                                <button class="nohide" onclick="addVarToGroup('addopmgmt');return false">Add variable</button>
+                                <label for="ftype">Fertiliser type</label>
+                                <select name="ftype">
+                                    <option value="urea">urea</option>
+                                    <option value="asulphate">ammonium sulphate</option>
+                                    <option value="canitrate">calcium ammonium nitrate</option>
+                                    <option value="prock">phosphate rock</option>
+                                    <option value="superp">super phosphates</option>
+                                    <option value="aphosphate">ammonium phosphate</option>
+                                    <option value="pchloride">potassium chloride</option>
+                                    <option value="psulphate">ammonium sulphate</option>
+                                    <option value="npk">NPK</option>
+                                    <option value="np">NP</option>
+                                    <option value="pk">PK</option>
+                                </select>
+                                <label for="irrigation">Irrigation amount</label>
+                                <input id="iamount" name="irrigation" type="number" AUTOCOMPLETE=OFF />
+                            </p>
+                            <p id="addmore">
+                                <select id="vargroup">
+                                    <option value="soil">Soil module</option>
+                                    <option value="pgro">Plant Growth module</option>
+                                    <option value="opmgmt">Operations management module</option>
+                                </select>
+                                <button id="varbtn" onclick="addvar();return false">Add optional variable group</button>
+                            </p>
+                        </fieldset>
+                        <fieldset class="step">
+                            <legend>Unit Settings - Set individual data for each units</legend>
+                            <p>
+                                <button id="unitimport">Import from Global Variables</button>
+                            </p>
+                            <div id="units"></div>
+                        </fieldset>
+                        <fieldset class="step" id="sims">
+                            <legend>Simulations - View simulations of data entered</legend>
+                            <div id="line"></div>
+                            <p id="linevar">
+                                <label for="x">X-axis</label>
+                                <select id="x" name="x"></select>
+                                <label for="y">Y-axis</label>
+                                <select id="y" name="y"></select>
+                                <button id="linebtn">Show line simulation</button>
+                            </p>
+                            <div id="showreel"></div>
+                            <p>
+                                <label>Please set units before using this simulation</label>
+                                <button id="showreelbtn">Show reel simulation</button>
+                            </p>
+                        </fieldset>
+                        <fieldset class="step" id="visuals">
+                            <legend>Visualisations - Choose graphs for the report</legend>
+                            <p>
+                                <label for="graphs">Graphs</label>
+                                <select id="graphs" name="graphs">
+                                    <option value="line">Multi-series Line Chart</option>
+                                    <option value="area">Area Chart</option>
+                                    <option value="difference">Difference Chart</option>
+                                    <option value="scatter">Scatter Graph</option>
+                                    <option value="pie">Pie Chart</option>
+                                    <option value="bar">Bar Chart</option>
+                                </select>
+                            </p>
+                            <p class="vary" id="barvar">
+                                <label for="x">Bar Chart X-axis</label>
+                                <select id="x" name="x"></select>
+                                <label for="y">Bar Chart Y-axis</label>
+                                <select id="y" name="y"></select>
+                                <button id="delete" onclick="deleteGraph(this);return false">Delete</button>
+                            </p>
+                            <p class="vary" id="multivar">
+                                <label for="x">Multi-Series Line X-axis</label>
+                                <select id="x" name="x"></select>
+                                <label for="y">Multi-Series Line Y-axis</label>
+                                <select id="y" name="y"></select>
+                                <button id="delete" onclick="deleteGraph(this);return false">Delete</button>
+                            </p>
+                            <p class="vary" id="diffvar">
+                                <label for="x">Difference Chart X-axis</label>
+                                <select id="x" name="x"></select>
+                                <label for="y">Difference Chart Y-axis</label>
+                                <select id="y" name="y"></select>
+                                <label for="d1">Difference 1</label>
+                                <select id="d1"></select>
+                                <label for="d2">Difference 2</label>
+                                <select id="d2"></select>
+                                <button id="delete" onclick="deleteGraph(this);return false">Delete</button>
+                            </p>
+                            <p class="vary" id="pievar">
+                                <label for="u">Unit Labels</label>
+                                <select id="u" name="u"></select>
+                                <label for="v">Values</label>
+                                <select id="v" name="v"></select>
+                                <button id="delete" onclick="deleteGraph(this);return false">Delete</button>
+                            </p>
+                            <p class="vary" id="scattervar">
+                                <label for="w">X-axis</label>
+                                <select id="w" name="w"></select>
+                                <label for="z">Y-axis</label>
+                                <select id="z" name="z"></select>
+                                <button id="delete" onclick="deleteGraph(this);return false">Delete</button>
+                            </p>
+                            <p class="vary" id="areavar">
+                                <label for="a">X-axis</label>
+                                <select id="a" name="a"></select>
+                                <label for="b">Y-axis</label>
+                                <select id="b" name="b"></select>
+                                <button id="delete" onclick="deleteGraph(this);return false">Delete</button>
+                            </p>
+                            <p>
+                                <button onclick="addGraph();return false">Add Graph</button>
+                            </p>
+                            <p>LIST OF GRAPHS</p>
+                        </fieldset>
+                        <fieldset class="step">
+                            <legend>Report</legend>
+                            <img src="" />
+                            <div id="report"></div>
+                        </fieldset>
+                        <fieldset class="step">
+                            <legend>Export - Save project into other formats</legend>
+                            <p>
+                                <button id="save">Save project as a file</button>
+                            </p>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript" src="js/sliding.form.js"></script>
+    <script src="http://openlayers.org/api/OpenLayers.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="js/form-field-tooltip.js"></script>
+    <script type="text/javascript" src="js/script.js"></script>
+    <script src="jquery-handsontable-0.8.13/lib/jquery.min.js"></script>
+    <script src="jquery-handsontable-0.8.13/jquery.handsontable.js"></script>
+    <script src="jquery-handsontable-0.8.13/lib/bootstrap-typeahead.js"></script>
+    <script src="jquery-handsontable-0.8.13/lib/jQuery-contextMenu/jquery.contextMenu.js"></script>
+    <script src="jquery-handsontable-0.8.13/lib/jQuery-contextMenu/jquery.ui.position.js"></script>
+    <script type="text/javascript" src="js/showreel.js"></script>
+    <script type="text/javascript" src="js/cycle.js"></script>
+    <script type="text/javascript" src="js/FileSaver.min.js"></script>
+    <script type="text/javascript" src="js/rounded-corners.js"></script>
+
+</html>

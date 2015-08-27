@@ -1,0 +1,306 @@
+var map, ctrlDragFeature;
+var maxZOOM = 21;
+
+var polygons = new Array();
+
+var theGraphicUrl, XPos, YPos, theWidth, theHeight, theXOffset, theYOffset, theRotation, theOpa
+var anArray = [];
+theOpa = 0.95;
+
+var polygonLayer = null;
+
+function randomFromTo(from, to){
+       return Math.floor(Math.random() * (to - from + 1) + from);
+    }
+
+function savefile()
+{
+	var blob = new Blob([JSON.stringify(JSON.decycle(polygons))], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, "poly.ecp");
+}
+
+function added(event)
+        {
+        	polygons.push(event.feature.geometry);
+        	$(document).ready(function() {
+			  $("#total").html(calcArea());
+			  $("#area").append("<div>Unit " + polygons.length + " Area: "+event.feature.geometry.getArea()+"</div>");
+			  $("#vars").append("<div id=unit" + polygons.length + ">" + $("#unit").html() + "</div>");
+			  $("#unit"+polygons.length).show();
+			  $("#unit"+polygons.length).prepend("Unit "+polygons.length);
+			  if ($("#soiltypechk").is(":checked"))
+		      	{
+		      		$(".soiltype").each(function(){
+		      			$(this).val($("#soiltypem option:selected").val());
+		      		});
+		      	}
+			});
+        	console.log(event.feature.geometry);
+        }
+
+function init() {
+
+    map = new OpenLayers.Map('map',
+    	{ maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
+    	numZoomLevels: maxZOOM+1,
+    	maxResolution: 156543.0399,
+    	units: 'm',
+    	projection: new OpenLayers.Projection("EPSG:900913")
+    	//displayProjection: new OpenLayers.Projection("EPSG:4326")
+    });
+
+    map.addControl(new OpenLayers.Control.LayerSwitcher());
+
+    var ol = new OpenLayers.Layer.OSM();
+    polygonLayer = new OpenLayers.Layer.Vector("Polygon Layer");
+
+    map.addLayers([ol]);
+    polyControl = new OpenLayers.Control.DrawFeature(polygonLayer,
+                       OpenLayers.Handler.Polygon);
+        polyControl.events.on({
+        	"featureadded":added
+        });
+        map.addControl(polyControl);
+        polyControl.activate();
+
+    theZoom = 6;
+
+    map.setCenter(new OpenLayers.LonLat(0, 0, theZoom));
+    map.zoomToMaxExtent();
+
+    theGraphicUrl = "http://www.primates.com/baboons/olive-baboon.jpg";
+    XPos          = 0;
+    YPos          = 0;
+    theWidth      = 300;
+    theHeight     = 300;
+    theXOffset    = -150;
+    theYOffset    = -150;
+    theRotation   = 0;
+    theResolution = map.getResolution();
+    console.log(map.getResolution());
+
+    var context = {
+        getUrl : function(){
+            return theGraphicUrl;
+        },
+        getXO : function(){
+            return theXOffset * theResolution / map.getResolution();
+        },
+        getYO : function(){
+            return theYOffset * theResolution / map.getResolution();
+        },
+        getW : function(){
+            return theWidth * theResolution / map.getResolution();
+        },
+        getH : function(){
+            return theHeight * theResolution / map.getResolution();
+        },
+        getR : function(){
+            return theRotation;
+        }
+    };
+    var template = {
+        externalGraphic: "${getUrl}",
+        graphicXOffset : "${getXO}",
+        graphicYOffset : "${getYO}",
+        graphicWidth   : "${getW}",
+        graphicHeight  : "${getH}",
+        rotation       : "${getR}",
+        strokeWidth    : 2,
+        strokeColor    : 'blue',
+        pointRadius    : 0
+    };
+    var oStyleMap = new OpenLayers.Style(template, {context: context});
+
+    vectorLayer = new OpenLayers.Layer.Vector("externalGraphic Overlay");
+    vectorLayer.styleMap = oStyleMap;
+
+    map.addLayers([vectorLayer, polygonLayer]);
+    var newPoint = new OpenLayers.Geometry.Point(0, 0);
+    var pointFeature = new OpenLayers.Feature.Vector(newPoint);
+    pointFeature.attributes.render = "drawAlways";
+    vectorLayer.addFeatures([pointFeature]);
+    vectorLayer.setOpacity(theOpa);
+
+    init_applyValue();
+
+    map.setCenter(new OpenLayers.LonLat(0, 0, theZoom));
+
+    ctrlDragFeature = new OpenLayers.Control.DragFeature(vectorLayer);
+    ctrlDragFeature.onComplete = ctrlDragFeature_onComplete;
+    map.addControl(ctrlDragFeature);
+    ctrlDragFeature.activate();
+}
+
+$(document).ready(function() {
+		  	$("#soiltypem").change(function(){
+		      	if ($("#soiltypechk").is(":checked"))
+		      	{
+		      		$(".soiltype").each(function(){
+		      			$(this).val($("#soiltypem option:selected").val());
+		      		});
+		      	}
+		    });
+		  });
+		  
+function calcArea()
+  {
+	var total = 0;
+	for (var i in polygons)
+	{
+		total += polygons[i].getArea();
+	}
+	console.log(total);
+	return total;
+  }
+
+function handleMeasurements(event) {
+    var geometry = event.geometry;
+    var units = event.units;
+    var order = event.order;
+    var measure = event.measure;
+    var element = document.getElementById('output');
+    var out = "";
+    if(order == 1) {
+        out += "measure: " + measure.toFixed(3) + " " + units;
+    } else {
+        out += "measure: " + measure.toFixed(3) + " " + units + "<sup>2</" + "sup>";
+    }
+    //element.innerHTML = out;
+    console.log(event);
+    polygonLayer.addFeatures(new OpenLayers.Geometry.Polygon(event.geometry.components));
+}
+
+function ctrlDragFeature_onComplete()
+{
+    document.getElementById("iXPos").value = vectorLayer.features[0].geometry.x;
+    document.getElementById("iYPos").value = vectorLayer.features[0].geometry.y;
+}
+
+function addVal(dt, ID)
+{
+    if(ID != "iXPos" && ID != "iYPos" && ID != "iOpa")
+    {   var Wert = parseInt(document.getElementById(ID).value);
+        document.getElementById(ID).value = Wert + dt;
+    }
+    else if(ID == "iOpa")
+    {   var Wert = parseFloat(document.getElementById(ID).value);
+        document.getElementById(ID).value = Wert + dt/10;
+    }
+    else
+    {   var Wert = parseFloat(document.getElementById(ID).value);
+        document.getElementById(ID).value = Wert + dt*map.getResolution();
+    }
+    applyValue();
+}
+
+function applyValue()
+{
+    theGraphicUrl = document.getElementById("iUrl").value;
+    XPos          = parseFloat(document.getElementById("iXPos"  ).value);
+    YPos          = parseFloat(document.getElementById("iYPos"  ).value);
+    theWidth      = parseInt(document.getElementById("iWidth" ).value);
+    theHeight     = parseInt(document.getElementById("iHeight").value);
+    // theXOffset    = parseInt(document.getElementById("iXOff"  ).value);
+    // theYOffset    = parseInt(document.getElementById("iYOff"  ).value);
+    theXOffset = theWidth / -2;
+    theYOffset = theHeight / -2;
+    theRotation   = parseInt(document.getElementById("iRota").value);
+    theOpa        = parseFloat(document.getElementById("iOpa").value);
+
+    if(theOpa>=1)
+    {   theOpa = 1;
+        vectorLayer.setOpacity(theOpa);
+        document.getElementById("iOpa").value = 1;
+    }
+    else if(theOpa<=0)
+    {   theOpa = 0;
+        vectorLayer.setOpacity(theOpa);
+        document.getElementById("iOpa").value = 0;
+    }
+    else
+        vectorLayer.setOpacity(theOpa);
+
+    vectorLayer.features[0].geometry.x = XPos;
+    vectorLayer.features[0].geometry.y = YPos;
+
+    vectorLayer.drawFeature(vectorLayer.features[0]);
+}
+
+function init_applyValue()
+{
+    document.getElementById("iUrl").value    = theGraphicUrl;
+    document.getElementById("iXPos"  ).value = XPos;
+    document.getElementById("iYPos"  ).value = YPos;
+    document.getElementById("iWidth" ).value = theWidth;
+    document.getElementById("iHeight").value = theHeight;
+    document.getElementById("iRota").value =   theRotation;
+    document.getElementById("iOpa").value =   theOpa;
+
+}
+
+function drawpoint(index)
+{
+    console.log(polygons[index].getBounds());
+    var bounds = polygons[index].getBounds();
+    
+    while (true)
+    {
+            var newPoint = new OpenLayers.Geometry.Point(
+                    randomFromTo( 
+                            bounds.left,
+                            bounds.right
+                    ),
+                    randomFromTo( 
+                            bounds.bottom,
+                            bounds.top
+                    ));
+            
+            if( polygons[index].containsPoint(newPoint))
+            {
+                    break;
+            }
+    }
+    var pointFeature = new OpenLayers.Feature.Vector(newPoint);
+    polygonLayer.addFeatures([pointFeature]);
+}
+
+function loadPolygon(poly)
+{
+	var points = new Array();
+	for (var i in poly.components[0].components)
+	{
+		points.push(new OpenLayers.Geometry.Point(poly.components[0].components[i].x, poly.components[0].components[i].y));
+	}
+	points[points.length-1] = points[0]; 
+	polygonLayer.addFeatures(
+		new OpenLayers.Feature.Vector(
+			new OpenLayers.Geometry.Polygon(
+				new OpenLayers.Geometry.LinearRing(points)
+			)
+		)
+	);
+	console.log(points);
+	console.log(polygonLayer.features);
+}
+
+function handleFileSelect(evt) {
+	var files = evt.target.files; // FileList object
+	// Loop through the FileList and render image files as thumbnails.
+	for (var i = 0, f; f = files[i]; i++) {
+	
+	  var reader = new FileReader();
+	
+	  // Closure to capture the file information.
+	  reader.onload = (function(theFile) {
+	    return function(e) {
+	      po = JSON.parse(e.target.result);
+	      for(var i in po)
+	      	loadPolygon(po[i]);
+	    };
+	  })(f);
+	  reader.readAsText(f);
+	}
+}
+		
+		  //document.getElementById('files').addEventListener('change', handleFileSelect, false);
